@@ -222,6 +222,32 @@
             font-family: monospace;
             color: #888;
         }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .controls {
+                position: static;
+                max-height: none;
+            }
+
+            .output-area {
+                min-height: 300px;
+                padding: 1rem;
+            }
+
+            #ascii-output {
+                font-size: 8px;
+                line-height: 8px;
+            }
+        }
     </style>
 </head>
 
