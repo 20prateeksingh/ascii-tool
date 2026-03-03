@@ -14,241 +14,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ASCII Asset Generator</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
-        :root {
-            --primary: #2E5CB8;
-            --bg: #FAFAFA;
-            --surface: #FFFFFF;
-            --border: #E0E0E0;
-            --text: #111111;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 2rem;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 2rem;
-        }
-
-        .controls {
-            background: var(--surface);
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
-            height: fit-content;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            position: sticky;
-            top: 2rem;
-            max-height: calc(100vh - 4rem);
-            overflow-y: auto;
-        }
-
-        h1 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin: 0;
-            color: var(--primary);
-        }
-
-        .group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .sub-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            padding: 1rem;
-            background: #F8F9FA;
-            border-radius: 8px;
-            border: 1px solid #EEE;
-        }
-
-        .sub-group-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #888;
-            letter-spacing: 0.05em;
-        }
-
-        label {
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #666;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="color"] {
-            padding: 0.6rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-family: 'Source Code Pro', monospace;
-            font-size: 0.9rem;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        input[type="color"] {
-            padding: 0.2rem;
-            height: 40px;
-            cursor: pointer;
-        }
-
-        input[type="range"] {
-            width: 100%;
-        }
-
-        select {
-            padding: 0.2rem 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            font-family: inherit;
-            font-size: 0.8rem;
-            background: var(--surface);
-            color: var(--text);
-            cursor: pointer;
-            outline: none;
-        }
-
-        .file-upload {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-btn {
-            background: var(--surface);
-            border: 1px dashed var(--primary);
-            color: var(--primary);
-            padding: 1rem;
-            border-radius: 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .file-btn:hover {
-            background: #F0F5FF;
-        }
-
-        .output-area {
-            background: var(--surface);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            padding: 2rem;
-            overflow: auto;
-            min-height: 500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-
-        #ascii-output {
-            font-family: 'Source Code Pro', monospace;
-            white-space: pre;
-            font-size: 10px;
-            line-height: 10px;
-            color: #000;
-            margin: 0;
-        }
-
-        .actions {
-            margin-top: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-        }
-
-        button {
-            border: none;
-            padding: 0.8rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            width: 100%;
-            font-size: 0.9rem;
-        }
-
-        button.primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        button.secondary {
-            background: var(--surface);
-            color: var(--text);
-            border: 1px solid var(--border);
-        }
-
-        button:hover {
-            opacity: 0.9;
-        }
-
-        .val-display {
-            font-family: monospace;
-            color: #888;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 1rem;
-            }
-
-            .container {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .controls {
-                position: static;
-                max-height: none;
-            }
-
-            .output-area {
-                min-height: 300px;
-                padding: 1rem;
-            }
-
-            #ascii-output {
-                font-size: 8px;
-                line-height: 8px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="index.css">
 </head>
 
 <body>
@@ -259,14 +25,27 @@
             <h1>ASCII Generator</h1>
 
             <div class="file-upload">
-                <label>Source Image</label>
-                <label for="imgUpload" class="file-btn">Choose Image...</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <label style="margin: 0; display: block;">Source Image</label>
+                    <div id="imageActions" style="display: none; gap: 0.5rem;">
+                        <button class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; width: auto;"
+                            onclick="document.getElementById('imgUpload').click()">Replace</button>
+                        <button class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; width: auto;"
+                            onclick="removeImage()">Remove</button>
+                    </div>
+                </div>
+                <label for="imgUpload" class="file-btn" id="uploadLabel">Choose Image...</label>
+                <div id="thumbnailContainer"
+                    style="display: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem; background: var(--surface); text-align: center;">
+                    <img id="imageThumbnail"
+                        style="max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 4px;" />
+                </div>
                 <input type="file" id="imgUpload" accept="image/*">
             </div>
 
             <div class="group">
                 <label>ASCII Ramp <select id="rampSelect">
-                        <option value=".*₹$€£">Fintech</option>
+                        <option value=" .*₹$€£">Fintech</option>
                         <option value=" .:-=+*#%@" selected>Max</option>
                         <option value=" 01">Binary</option>
                         <option value=" ░▒▓█">Blocks</option>
@@ -320,7 +99,55 @@
 
         <!-- Preview Area -->
         <div class="output-area" id="outputContainer">
-            <pre id="ascii-output">Upload an image to start...</pre>
+            <div class="output-toolbar" id="outputToolbar" style="display: none;">
+                <!-- Zoom Controls -->
+                <div class="toolbar-group">
+                    <button class="icon-btn" onclick="handleZoom(0.1)" title="Zoom In">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                            <path d="M12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="handleZoom(-0.1)" title="Zoom Out">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                            <path d="M7 9h5v1H7z" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" onclick="resetZoom()" title="1:1 Size">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M15 3l2.3 2.3-2.89 2.87 1.42 1.42L18.7 6.7 21 9V3zM3 9l2.3-2.3 2.87 2.89 1.42-1.42L6.7 5.3 9 3H3zm6 12l-2.3-2.3 2.89-2.87-1.42-1.42L5.3 17.3 3 15v6zM21 15l-2.3 2.3-2.87-2.89-1.42 1.42 2.89 2.87L15 21h6z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Visual Toggles -->
+                <div class="toolbar-group">
+                    <button class="icon-btn" id="bgToggleBtn" onclick="toggleBg()"
+                        title="Toggle Background (Light/Dark)">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" />
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="weightToggleBtn" onclick="toggleWeight()"
+                        title="Toggle Font Weight (Normal/Bold)">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="output-container-inner" id="outputContainerInner">
+                <div id="ascii-wrapper">
+                    <pre id="ascii-output">Upload an image to start...</pre>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -349,6 +176,15 @@
         // Settings
         const FONT_ASPECT = 0.6; // Width/Height of monospace char (approx)
 
+        // Output Container & Features
+        const outputToolbar = document.getElementById('outputToolbar');
+        const asciiWrapper = document.getElementById('ascii-wrapper');
+        const outputContainerInner = document.getElementById('outputContainerInner');
+
+        let currentZoom = 1;
+        let isDarkBg = false;
+        let isBold = false;
+
         imgUpload.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -358,12 +194,29 @@
                 const img = new Image();
                 img.onload = () => {
                     currentImage = img;
+                    imageThumbnail.src = event.target.result;
+                    uploadLabel.style.display = 'none';
+                    thumbnailContainer.style.display = 'block';
+                    imageActions.style.display = 'flex';
+                    outputToolbar.style.display = 'flex';
+                    resetZoom();
                     generateASCII();
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
         });
+
+        function removeImage() {
+            currentImage = null;
+            imgUpload.value = '';
+            imageThumbnail.src = '';
+            uploadLabel.style.display = 'block';
+            thumbnailContainer.style.display = 'none';
+            imageActions.style.display = 'none';
+            outputToolbar.style.display = 'none';
+            output.textContent = "Upload an image to start...";
+        }
 
         const inputs = [rampInput, widthRange, brightRange, contrastRange, satRange, colorPicker];
         inputs.forEach(el => {
@@ -418,9 +271,24 @@
 
             output.style.color = color;
 
+            // Compute dynamic font size to keep overall visual width bounded by the container
+            const containerWidth = outputContainerInner.clientWidth - 40; // 20px padding each side approx
+            const containerHeight = outputContainerInner.clientHeight - 40;
+
             // Maintain aspect ratio
             const aspectRatio = currentImage.height / currentImage.width;
             const height = Math.floor(width * aspectRatio * FONT_ASPECT);
+
+            // Calculate what font size would fit width-wise and height-wise perfectly
+            const fitWidthSize = containerWidth / (width * FONT_ASPECT);
+            const fitHeightSize = containerHeight / height;
+
+            // Use whichever size hits the boundary first
+            const targetFontSize = Math.max(1, Math.min(fitWidthSize, fitHeightSize));
+
+            output.style.fontSize = `${targetFontSize}px`;
+            output.style.lineHeight = `${targetFontSize}px`;
+            output.style.fontWeight = isBold ? "bold" : "normal";
 
             // Create offscreen canvas
             const canvas = document.createElement('canvas');
@@ -516,6 +384,45 @@
             link.href = canvas.toDataURL('image/png');
             link.click();
         }
+
+        // --- View Controls ---
+        function handleZoom(delta) {
+            currentZoom = Math.max(0.1, Math.min(5, currentZoom + delta));
+            asciiWrapper.style.transform = `scale(${currentZoom})`;
+        }
+
+        function resetZoom() {
+            currentZoom = 1;
+            asciiWrapper.style.transform = `scale(1)`;
+        }
+
+        // --- Visual Adjustments ---
+        function toggleBg() {
+            isDarkBg = !isDarkBg;
+            const btn = document.getElementById('bgToggleBtn');
+            btn.classList.toggle('active');
+
+            if (isDarkBg) {
+                document.getElementById('outputContainer').style.background = "#111111";
+                document.getElementById('outputContainer').style.color = "#FFFFFF";
+                // If the color is set to exactly #000000, invert to white just for preview visibility
+                if (colorPicker.value === "#000000") {
+                    output.style.color = "#FAFAFA";
+                }
+            } else {
+                document.getElementById('outputContainer').style.background = "var(--surface)";
+                document.getElementById('outputContainer').style.color = "var(--text)";
+                generateASCII(); // reset color
+            }
+        }
+
+        function toggleWeight() {
+            isBold = !isBold;
+            const btn = document.getElementById('weightToggleBtn');
+            btn.classList.toggle('active');
+            generateASCII();
+        }
+
     </script>
 </body>
 
