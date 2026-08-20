@@ -1,429 +1,539 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-9XVG4PMPTE"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>ASCII Asset Generator</title>
+<meta name="description" content="Turn an image into ASCII art in your browser. Pick a character ramp, tune the resolution and lighting, then copy the text or download a PNG. Nothing is uploaded.">
 
-        gtag('config', 'G-9XVG4PMPTE');
-    </script>
+<!-- Google Analytics. THE ONE THIRD-PARTY SUBRESOURCE ON THIS PAGE, and the only reason this file
+     differs from its twin in Portfolio-2025 (public/tools/ascii-generator/index.html), which uses
+     that site's own first-party analytics instead. It is kept here because it is the measurement
+     behind the GitHub Pages deployment; deleting it would silently drop that history.
+     It is async and failing to load changes nothing about the app. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-9XVG4PMPTE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-9XVG4PMPTE');
+</script>
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASCII Asset Generator</title>
-    <link rel="stylesheet" href="index.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='4' fill='%234F46E5'/%3E%3Ctext x='8' y='11.6' font-family='ui-monospace,monospace' font-size='9' font-weight='700' text-anchor='middle' fill='%23fff'%3E%23%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="index.css">
 </head>
-
 <body>
 
-    <div class="container">
-        <!-- Controls Sidebar -->
-        <div class="controls">
-            <h1>ASCII Generator</h1>
+<!-- ══════════════════════════════════════════════════════════════════════════════════════════════════
+     ASCII Asset Generator. One HTML file, one CSS file, no build step, no dependencies.
+     Open index.html in a browser — including straight off the filesystem — and it works.
 
-            <div class="file-upload">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <label style="margin: 0; display: block;">Source Image</label>
-                    <div id="imageActions" style="display: none; gap: 0.5rem;">
-                        <button class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; width: auto;"
-                            onclick="document.getElementById('imgUpload').click()">Replace</button>
-                        <button class="secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem; width: auto;"
-                            onclick="removeImage()">Remove</button>
-                    </div>
-                </div>
-                <label for="imgUpload" class="file-btn" id="uploadLabel">Choose Image...</label>
-                <div id="thumbnailContainer"
-                    style="display: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.5rem; background: var(--surface); text-align: center;">
-                    <img id="imageThumbnail"
-                        style="max-width: 100%; max-height: 150px; object-fit: contain; border-radius: 4px;" />
-                </div>
-                <input type="file" id="imgUpload" accept="image/*">
-            </div>
+     THE IMAGE NEVER LEAVES THE MACHINE. It is read with FileReader into an <img>, drawn to an
+     offscreen <canvas>, and read back with getImageData. There is no fetch, no upload and no server.
 
-            <div class="group">
-                <label>ASCII Ramp <select id="rampSelect">
-                        <option value=" .*₹$€£">Fintech</option>
-                        <option value=" .:-=+*#%@" selected>Max</option>
-                        <option value=" 01">Binary</option>
-                        <option value=" ░▒▓█">Blocks</option>
-                        <option value=" ▫◽◻">Squares</option>
-                        <option value=" ◦○◎◍●">Circles</option>
-                        <option value=" ▵▴◭▲">Triangles</option>
-                        <option value=" ▖▚▜█">Blocks (Dots)</option>
-                        <option value="custom">Custom</option>
-                    </select></label>
-                <input type="text" id="rampInput" value=" .:-=+*#%@">
-            </div>
+     THE RAIL HOLDS EVERYTHING THAT ENDS UP IN THE EXPORT; THE STAGE TOOLBAR HOLDS VIEW STATE ONLY.
+     That split is the one structural change from the previous version, which had a "toggle
+     background" button sitting next to zoom and then filled the exported PNG with white regardless —
+     so a dark preview downloaded as near-invisible art. Background is now a rail control and the
+     export reads it.
+     ═════════════════════════════════════════════════════════════════════════════════════════════ -->
 
-            <div class="group">
-                <label>Color</label>
-                <input type="color" id="colorPicker" value="#000000">
-            </div>
+<header class="band">
+  <div class="wrap">
+    <a class="mark" href="./">ASCII <span>Asset Generator</span></a>
+    <nav>
+      <a class="hidesm" href="https://www.prateeksingh.in/tools/">More tools</a>
+      <a class="ghcta" href="https://github.com/20prateeksingh/ascii-tool" rel="noopener">Source</a>
+    </nav>
+  </div>
+</header>
 
-            <div class="sub-group">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span class="sub-group-title">Adjustments</span>
-                    <button class="secondary" style="padding: 0.15rem 0.6rem; font-size: 0.75rem; width: auto;"
-                        onclick="resetAdjustments()">Reset</button>
-                </div>
+<main class="shell">
+  <div class="wrap">
 
-                <div class="group">
-                    <label>Resolution <span id="widthVal" class="val-display">100</span></label>
-                    <input type="range" id="widthRange" min="20" max="300" value="100">
-                </div>
+    <!-- ══ THE RAIL ══ every control here changes the artifact, not the view ══════════════════════ -->
+    <div class="rail">
 
-                <div class="group">
-                    <label>Brightness <span id="brightVal" class="val-display">100%</span></label>
-                    <input type="range" id="brightRange" min="0" max="200" value="100">
-                </div>
+      <div class="group">
+        <div class="eyebrow">Source</div>
+        <label class="drop" for="file" id="drop">
+          <strong>Choose an image</strong>
+          <span class="hint">or drop one here. PNG, JPG, WebP, SVG.</span>
+        </label>
+        <input type="file" id="file" accept="image/*">
+        <div class="thumb" id="thumb" hidden>
+          <img id="thumbImg" alt="The image currently loaded">
+          <div class="thumb-meta">
+            <span class="val" id="thumbMeta"></span>
+            <span class="thumb-btns">
+              <button class="btn-mini" type="button" id="replace">Replace</button>
+              <button class="btn-mini" type="button" id="remove">Remove</button>
+            </span>
+          </div>
+        </div>
+      </div>
 
-                <div class="group">
-                    <label>Contrast <span id="contrastVal" class="val-display">100%</span></label>
-                    <input type="range" id="contrastRange" min="0" max="200" value="100">
-                </div>
+      <div class="group">
+        <div class="eyebrow">Characters</div>
+        <label for="ramp">Ramp</label>
+        <select id="ramp">
+          <option value=" .:-=+*#%@" selected>Max &mdash; ten steps</option>
+          <option value=" .*&#8377;$&euro;&pound;">Fintech &mdash; currency</option>
+          <option value=" 01">Binary</option>
+          <option value=" &#9617;&#9618;&#9619;&#9608;">Blocks &mdash; shaded</option>
+          <option value=" &#9622;&#9626;&#9628;&#9608;">Blocks &mdash; quadrants</option>
+          <option value=" &#9642;&#9725;&#9723;">Squares</option>
+          <option value=" &#9702;&#9675;&#9678;&#9677;&#9679;">Circles</option>
+          <option value=" &#9653;&#9652;&#9773;&#9650;">Triangles</option>
+          <option value="custom">Custom&hellip;</option>
+        </select>
+        <input type="text" id="rampText" value=" .:-=+*#%@" spellcheck="false" aria-label="Ramp characters, lightest first">
+        <p class="hint">Lightest character first, densest last. The first one is usually a space.</p>
+      </div>
 
-                <div class="group">
-                    <label>Saturation <span id="satVal" class="val-display">100%</span></label>
-                    <input type="range" id="satRange" min="0" max="200" value="100">
-                </div>
-            </div>
+      <div class="group">
+        <div class="group-head">
+          <label for="cols">Resolution</label>
+          <span class="val" id="colsVal">100</span>
+        </div>
+        <input type="range" id="cols" min="20" max="400" value="100">
+        <p class="hint" id="dims">Columns of characters. Rows follow the image's aspect ratio.</p>
+      </div>
 
-            <div class="actions">
-                <button class="primary" onclick="copyToClipboard()">Copy Text</button>
-                <button class="secondary" onclick="downloadPNG()">Download PNG</button>
-            </div>
+      <div class="box">
+        <div class="group-head">
+          <span class="eyebrow">Image</span>
+          <button class="btn-mini" type="button" id="resetAdj">Reset</button>
+        </div>
+        <div class="group">
+          <div class="group-head"><label for="bright">Brightness</label><span class="val" id="brightVal">100%</span></div>
+          <input type="range" id="bright" min="0" max="200" value="100">
+        </div>
+        <div class="group">
+          <div class="group-head"><label for="contrast">Contrast</label><span class="val" id="contrastVal">100%</span></div>
+          <input type="range" id="contrast" min="0" max="200" value="100">
+        </div>
+        <div class="group">
+          <div class="group-head"><label for="sat">Saturation</label><span class="val" id="satVal">100%</span></div>
+          <input type="range" id="sat" min="0" max="200" value="100">
+        </div>
+        <p class="hint">Push contrast until the ramp's characters land where you want them.</p>
+      </div>
+
+      <div class="group">
+        <div class="eyebrow">Appearance</div>
+        <label for="color">Colour</label>
+        <div class="swatch">
+          <input type="color" id="color" value="#F5F6F7" aria-label="Character colour">
+          <span class="hex" id="hex">#F5F6F7</span>
         </div>
 
-        <!-- Preview Area -->
-        <div class="output-area" id="outputContainer">
-            <div class="output-toolbar" id="outputToolbar" style="display: none;">
-                <!-- Zoom Controls -->
-                <div class="toolbar-group">
-                    <button class="icon-btn" onclick="handleZoom(0.1)" title="Zoom In">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                            <path d="M12 10h-2v2H9v-2H7V9h2V7h1v2h2v1z" />
-                        </svg>
-                    </button>
-                    <button class="icon-btn" onclick="handleZoom(-0.1)" title="Zoom Out">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-                            <path d="M7 9h5v1H7z" />
-                        </svg>
-                    </button>
-                    <button class="icon-btn" onclick="resetZoom()" title="1:1 Size">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M15 3l2.3 2.3-2.89 2.87 1.42 1.42L18.7 6.7 21 9V3zM3 9l2.3-2.3 2.87 2.89 1.42-1.42L6.7 5.3 9 3H3zm6 12l-2.3-2.3 2.89-2.87-1.42-1.42L5.3 17.3 3 15v6zM21 15l-2.3 2.3-2.87-2.89-1.42 1.42 2.89 2.87L15 21h6z" />
-                        </svg>
-                    </button>
-                </div>
-
-                <!-- Visual Toggles -->
-                <div class="toolbar-group">
-                    <button class="icon-btn" id="bgToggleBtn" onclick="toggleBg()"
-                        title="Toggle Background (Light/Dark)">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69zM12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6zm0-10c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4z" />
-                        </svg>
-                    </button>
-                    <button class="icon-btn" id="weightToggleBtn" onclick="toggleWeight()"
-                        title="Toggle Font Weight (Normal/Bold)">
-                        <svg viewBox="0 0 24 24">
-                            <path
-                                d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-
-            <div class="output-container-inner" id="outputContainerInner">
-                <div id="ascii-wrapper">
-                    <pre id="ascii-output">Upload an image to start...</pre>
-                </div>
-            </div>
+        <label id="bgLabel" style="margin-top:4px">Background</label>
+        <div class="seg" role="group" aria-labelledby="bgLabel" id="bgSeg">
+          <button type="button" data-bg="alpha" aria-pressed="false">None</button>
+          <button type="button" data-bg="dark" aria-pressed="true">Dark</button>
+          <button type="button" data-bg="light" aria-pressed="false">Light</button>
         </div>
+
+        <label id="wLabel" style="margin-top:4px">Weight</label>
+        <div class="seg" role="group" aria-labelledby="wLabel" id="wSeg">
+          <button type="button" data-w="400" aria-pressed="true">Regular</button>
+          <button type="button" data-w="700" aria-pressed="false">Bold</button>
+        </div>
+        <p class="hint" id="polarity"></p>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" type="button" id="copy" disabled>Copy text</button>
+        <button class="btn btn-ghost" type="button" id="png" disabled>Download PNG</button>
+      </div>
     </div>
 
-    <script>
-        const imgUpload = document.getElementById('imgUpload');
-        const rampInput = document.getElementById('rampInput');
-        const rampSelect = document.getElementById('rampSelect');
+    <!-- ══ THE STAGE ══ the artifact, and the one control that only changes how you look at it ════ -->
+    <div class="stage" id="stage" data-bg="dark">
+      <div class="stage-bar" id="bar" hidden>
+        <div class="tgroup">
+          <button class="iconbtn" type="button" id="zoomOut" title="Zoom out" aria-label="Zoom out">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M8 11h6"/></svg>
+          </button>
+          <span class="zoomval" id="zoomVal">100%</span>
+          <button class="iconbtn" type="button" id="zoomIn" title="Zoom in" aria-label="Zoom in">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M8 11h6M11 8v6"/></svg>
+          </button>
+        </div>
+        <div class="tgroup">
+          <button class="iconbtn" type="button" id="zoomFit" title="Fit to view" aria-label="Fit to view">
+            <svg viewBox="0 0 24 24"><path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/></svg>
+          </button>
+        </div>
+      </div>
 
-        // Ranges
-        const widthRange = document.getElementById('widthRange');
-        const brightRange = document.getElementById('brightRange');
-        const contrastRange = document.getElementById('contrastRange');
-        const satRange = document.getElementById('satRange');
+      <div class="stage-inner" id="stageInner">
+        <div class="empty" id="empty">
+          <!-- The default ramp, each step repeated, so the line reads as a density gradient
+               instead of a row of unrelated symbols. It is the whole idea of the tool in one line. -->
+          <div class="glyph" aria-hidden="true">...:::---===+++***###%%%@@@</div>
+          <p>Load an image and it becomes text. Everything happens in this tab &mdash; nothing is uploaded.</p>
+        </div>
+        <div id="art" hidden>
+          <div class="artboard" id="artboard"><pre id="ascii-output"></pre></div>
+        </div>
+      </div>
+    </div>
 
-        // Values
-        const widthVal = document.getElementById('widthVal');
-        const brightVal = document.getElementById('brightVal');
-        const contrastVal = document.getElementById('contrastVal');
-        const satVal = document.getElementById('satVal');
+  </div>
+</main>
 
-        const colorPicker = document.getElementById('colorPicker');
-        const output = document.getElementById('ascii-output');
+<footer>
+  <div class="wrap">
+    <span class="lic">Runs in your browser</span>
+    <span>The image is never uploaded. No server, no account, no build step.</span>
+    <span class="sep"><a href="https://github.com/20prateeksingh/ascii-tool" rel="noopener">Source on GitHub</a></span>
+  </div>
+</footer>
 
-        let currentImage = null;
+<script>
+(function () {
+  'use strict';
 
-        // Settings
-        const FONT_ASPECT = 0.6; // Width/Height of monospace char (approx)
+  /* ── The monospace stack, in one place. It is used THREE times and all three must agree or the
+     export stops matching the preview: the CSS sets it on #ascii-output, and canvas needs it both to
+     measure a cell and to draw one. ─────────────────────────────────────────────────────────────── */
+  var MONO = "ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace";
 
-        // Output Container & Features
-        const outputToolbar = document.getElementById('outputToolbar');
-        const asciiWrapper = document.getElementById('ascii-wrapper');
-        const outputContainerInner = document.getElementById('outputContainerInner');
+  /* Width/height of one monospace cell. Not measured per-font on purpose: the whole grid is scaled by
+     this one number, so a constant keeps the output's proportions stable across machines even when
+     the resolved font differs slightly. 0.6 is the common ratio for the faces in MONO. */
+  var FONT_ASPECT = 0.6;
 
-        let currentZoom = 1;
-        let isDarkBg = false;
-        let isBold = false;
+  /* What each background choice means to the exporter. null is real transparency. */
+  var BG_FILL = { alpha: null, dark: '#08090A', light: '#FFFFFF' };
 
-        imgUpload.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+  var $ = function (id) { return document.getElementById(id); };
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    currentImage = img;
-                    imageThumbnail.src = event.target.result;
-                    uploadLabel.style.display = 'none';
-                    thumbnailContainer.style.display = 'block';
-                    imageActions.style.display = 'flex';
-                    outputToolbar.style.display = 'flex';
-                    resetZoom();
-                    generateASCII();
-                };
-                img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
+  var el = {
+    file: $('file'), drop: $('drop'), thumb: $('thumb'), thumbImg: $('thumbImg'),
+    thumbMeta: $('thumbMeta'), replace: $('replace'), remove: $('remove'),
+    ramp: $('ramp'), rampText: $('rampText'),
+    cols: $('cols'), colsVal: $('colsVal'), dims: $('dims'),
+    bright: $('bright'), brightVal: $('brightVal'),
+    contrast: $('contrast'), contrastVal: $('contrastVal'),
+    sat: $('sat'), satVal: $('satVal'), resetAdj: $('resetAdj'),
+    color: $('color'), hex: $('hex'), bgSeg: $('bgSeg'), wSeg: $('wSeg'), polarity: $('polarity'),
+    copy: $('copy'), png: $('png'),
+    stage: $('stage'), stageInner: $('stageInner'), bar: $('bar'),
+    empty: $('empty'), art: $('art'), artboard: $('artboard'), out: $('ascii-output'),
+    zoomIn: $('zoomIn'), zoomOut: $('zoomOut'), zoomFit: $('zoomFit'), zoomVal: $('zoomVal')
+  };
 
-        function removeImage() {
-            currentImage = null;
-            imgUpload.value = '';
-            imageThumbnail.src = '';
-            uploadLabel.style.display = 'block';
-            thumbnailContainer.style.display = 'none';
-            imageActions.style.display = 'none';
-            outputToolbar.style.display = 'none';
-            output.textContent = "Upload an image to start...";
-        }
+  var image = null;      // the loaded HTMLImageElement
+  var zoom = 1;          // view only; never reaches the export
+  var bg = 'dark';       // key into BG_FILL
+  var weight = 400;      // 400 | 700, exported
+  var text = '';         // the last rendered art, so copy/export never re-derive it
 
-        const inputs = [rampInput, widthRange, brightRange, contrastRange, satRange, colorPicker];
-        inputs.forEach(el => {
-            el.addEventListener('input', generateASCII);
-        });
+  /* ── luminance, and the one inference this app makes for you ───────────────────────────────────
+     A dense glyph is INK. Whether ink means "dark part of the photo" or "bright part of it" depends
+     entirely on whether the ink is darker or lighter than what it sits on — so the brightness ramp
+     has to be inverted for dark-ink-on-light and left alone for light-ink-on-dark. Getting this
+     wrong yields a photographic negative, which is why it is derived rather than left as a switch
+     the user has to find. With no background at all there is nothing to compare against, so 0.5
+     stands in: dark ink will end up on something light, and light ink on something dark. */
+  function lum(hex) {
+    var n = parseInt(hex.slice(1), 16);
+    var r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+  function shouldInvert() {
+    var board = BG_FILL[bg] === null ? 0.5 : lum(BG_FILL[bg]);
+    return lum(el.color.value) < board;
+  }
 
-        rampSelect.addEventListener('change', (e) => {
-            if (e.target.value !== 'custom') {
-                rampInput.value = e.target.value;
-                generateASCII();
-            }
-        });
+  /* ── ranges: paint the filled part of the track, because an unfilled track is a guess ────────── */
+  function paintRange(r) {
+    var pct = (r.value - r.min) / (r.max - r.min) * 100;
+    r.style.setProperty('--fill', pct + '%');
+  }
 
-        rampInput.addEventListener('input', () => {
-            let match = false;
-            for (let i = 0; i < rampSelect.options.length; i++) {
-                if (rampSelect.options[i].value === rampInput.value) {
-                    rampSelect.selectedIndex = i;
-                    match = true;
-                    break;
-                }
-            }
-            if (!match) {
-                rampSelect.value = 'custom';
-            }
-        });
+  /* ── the render ─────────────────────────────────────────────────────────────────────────────────
+     Draw the image small (one canvas pixel per output character), read it back, map brightness to a
+     ramp index. The CSS filter is applied to the 2D context BEFORE drawImage, so brightness/contrast/
+     saturation are baked into the pixels that get sampled rather than faked afterwards. */
+  function render() {
+    if (!image) return;
 
-        function resetAdjustments() {
-            widthRange.value = 100;
-            brightRange.value = 100;
-            contrastRange.value = 100;
-            satRange.value = 100;
-            generateASCII();
-        }
+    var ramp = el.rampText.value || ' .:-=+*#%@';
+    var cols = parseInt(el.cols.value, 10);
+    var rows = Math.max(1, Math.floor(cols * (image.height / image.width) * FONT_ASPECT));
+    var invert = shouldInvert();
 
-        function generateASCII() {
-            if (!currentImage) return;
+    el.colsVal.textContent = cols;
+    el.brightVal.textContent = el.bright.value + '%';
+    el.contrastVal.textContent = el.contrast.value + '%';
+    el.satVal.textContent = el.sat.value + '%';
+    el.dims.textContent = cols + ' × ' + rows + ' characters, from a '
+                        + image.width + ' × ' + image.height + ' image.';
+    el.polarity.textContent = invert
+      ? 'Dense characters are the dark parts of the image.'
+      : 'Dense characters are the bright parts of the image.';
 
-            const ramp = rampInput.value || " .:-=+*#%@";
-            const width = parseInt(widthRange.value);
-            const color = colorPicker.value;
+    var c = document.createElement('canvas');
+    c.width = cols; c.height = rows;
+    var ctx = c.getContext('2d');
+    ctx.filter = 'brightness(' + el.bright.value + '%) contrast(' + el.contrast.value
+               + '%) saturate(' + el.sat.value + '%)';
+    ctx.drawImage(image, 0, 0, cols, rows);
+    var px = ctx.getImageData(0, 0, cols, rows).data;
 
-            const brightness = parseInt(brightRange.value);
-            const contrast = parseInt(contrastRange.value);
-            const saturation = parseInt(satRange.value);
+    var last = ramp.length - 1;
+    var lines = [];
+    for (var y = 0; y < rows; y++) {
+      var line = '';
+      for (var x = 0; x < cols; x++) {
+        var o = (y * cols + x) * 4;
+        if (px[o + 3] < 50) { line += ' '; continue; }
+        var v = (0.299 * px[o] + 0.587 * px[o + 1] + 0.114 * px[o + 2]) / 255;
+        if (invert) v = 1 - v;
+        var i = Math.round(v * last);
+        line += ramp.charAt(i < 0 ? 0 : (i > last ? last : i));
+      }
+      lines.push(line);
+    }
+    text = lines.join('\n');
 
-            // Update UI
-            widthVal.textContent = width;
-            brightVal.textContent = brightness + "%";
-            contrastVal.textContent = contrast + "%";
-            satVal.textContent = saturation + "%";
+    el.out.textContent = text;
+    el.out.style.color = el.color.value;
+    el.out.style.fontWeight = weight;
 
-            output.style.color = color;
+    /* Size one character so the whole grid fits the stage, then let zoom take it from there. The
+       stage's own padding is subtracted twice over: once for .stage-inner, once for .artboard. */
+    var padding = 2 * (28 + 24);
+    var availW = Math.max(80, el.stageInner.clientWidth - padding);
+    var availH = Math.max(80, el.stageInner.clientHeight - padding);
+    var size = Math.max(1, Math.min(availW / (cols * FONT_ASPECT), availH / rows));
+    el.out.style.fontSize = size + 'px';
+    el.out.style.lineHeight = size + 'px';
 
-            // Compute dynamic font size to keep overall visual width bounded by the container
-            const containerWidth = outputContainerInner.clientWidth - 40; // 20px padding each side approx
-            const containerHeight = outputContainerInner.clientHeight - 40;
+    el.copy.disabled = false;
+    el.png.disabled = false;
+  }
 
-            // Maintain aspect ratio
-            const aspectRatio = currentImage.height / currentImage.width;
-            const height = Math.floor(width * aspectRatio * FONT_ASPECT);
+  /* ── the export ─────────────────────────────────────────────────────────────────────────────────
+     Deliberately NOT a screenshot of the preview: the preview is scaled to fit a box, and the file
+     should not inherit that accident. It re-draws at a fixed 24px cell so a 300-column piece comes
+     out big enough to use, and it honours colour, weight and background — the three rail controls
+     that are part of the artifact. */
+  function exportPNG() {
+    if (!text) return;
+    var lines = text.split('\n');
+    while (lines.length && lines[lines.length - 1] === '') lines.pop();
+    if (!lines.length) return;
 
-            // Calculate what font size would fit width-wise and height-wise perfectly
-            const fitWidthSize = containerWidth / (width * FONT_ASPECT);
-            const fitHeightSize = containerHeight / height;
+    var size = 24, margin = 40;
+    var font = weight + ' ' + size + 'px ' + MONO;
 
-            // Use whichever size hits the boundary first
-            const targetFontSize = Math.max(1, Math.min(fitWidthSize, fitHeightSize));
+    var c = document.createElement('canvas');
+    var ctx = c.getContext('2d');
+    ctx.font = font;
+    var cell = ctx.measureText('M').width;
 
-            output.style.fontSize = `${targetFontSize}px`;
-            output.style.lineHeight = `${targetFontSize}px`;
-            output.style.fontWeight = isBold ? "bold" : "normal";
+    var widest = 0;
+    for (var i = 0; i < lines.length; i++) if (lines[i].length > widest) widest = lines[i].length;
 
-            // Create offscreen canvas
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
+    c.width = Math.ceil(widest * cell) + margin * 2;
+    c.height = lines.length * size + margin * 2;
 
-            // Apply filters BEFORE drawing
-            ctx.filter = `brightness(${brightness}%) contrast(${contrast}%) saturate(${saturation}%)`;
+    /* Resizing a canvas resets its context, so the font has to be set again below. */
+    ctx = c.getContext('2d');
+    var fill = BG_FILL[bg];
+    if (fill) { ctx.fillStyle = fill; ctx.fillRect(0, 0, c.width, c.height); }
+    ctx.font = font;
+    ctx.fillStyle = el.color.value;
+    ctx.textBaseline = 'top';
+    for (var j = 0; j < lines.length; j++) ctx.fillText(lines[j], margin, margin + j * size);
 
-            // Draw and resize
-            ctx.drawImage(currentImage, 0, 0, width, height);
-            const data = ctx.getImageData(0, 0, width, height).data;
+    var a = document.createElement('a');
+    a.download = 'ascii-asset.png';
+    a.href = c.toDataURL('image/png');
+    a.click();
+  }
 
-            let ascii = "";
+  function flash(btn, msg) {
+    var was = btn.textContent;
+    btn.textContent = msg;
+    setTimeout(function () { btn.textContent = was; }, 1400);
+  }
 
-            for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                    const offset = (y * width + x) * 4;
-                    const r = data[offset];
-                    const g = data[offset + 1];
-                    const b = data[offset + 2];
-                    const a = data[offset + 3];
+  /* ── loading a file ─────────────────────────────────────────────────────────────────────────── */
+  function load(file) {
+    if (!file || !/^image\//.test(file.type)) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        image = img;
+        el.thumbImg.src = e.target.result;
+        el.thumbImg.alt = 'The loaded image: ' + file.name;
+        el.thumbMeta.textContent = file.name;
+        el.thumb.hidden = false;
+        el.drop.hidden = true;
+        el.empty.hidden = true;
+        el.art.hidden = false;
+        el.bar.hidden = false;
+        setZoom(1);
+        render();
+      };
+      img.onerror = function () { el.thumbMeta.textContent = 'Could not read that file.'; };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
 
-                    // Alpha check
-                    if (a < 50) {
-                        ascii += " ";
-                        continue;
-                    }
+  function clear() {
+    image = null; text = '';
+    el.file.value = '';
+    el.thumbImg.removeAttribute('src');
+    el.thumb.hidden = true;
+    el.drop.hidden = false;
+    el.empty.hidden = false;
+    el.art.hidden = true;
+    el.bar.hidden = true;
+    el.out.textContent = '';
+    el.dims.textContent = "Columns of characters. Rows follow the image's aspect ratio.";
+    el.polarity.textContent = '';
+    el.copy.disabled = true;
+    el.png.disabled = true;
+  }
 
-                    // Calculate brightness (0-1)
-                    let bVal = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  function setZoom(z) {
+    zoom = Math.max(0.1, Math.min(6, z));
+    el.art.style.transform = 'scale(' + zoom + ')';
+    el.zoomVal.textContent = Math.round(zoom * 100) + '%';
+  }
 
-                    // Invert: Dark pixels should be dense characters
-                    bVal = 1.0 - bVal;
+  /* ── a segmented control: one pressed button, and the value lives on the button ──────────────── */
+  function wireSeg(seg, attr, onPick) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b || !b.hasAttribute(attr)) return;
+      var all = seg.querySelectorAll('button');
+      for (var i = 0; i < all.length; i++) all[i].setAttribute('aria-pressed', String(all[i] === b));
+      onPick(b.getAttribute(attr));
+    });
+  }
 
-                    const idx = Math.floor(bVal * (ramp.length - 1));
-                    const charIdx = Math.max(0, Math.min(ramp.length - 1, idx));
-                    ascii += ramp[charIdx];
-                }
-                ascii += "\n";
-            }
+  /* ── wiring ─────────────────────────────────────────────────────────────────────────────────── */
+  el.file.addEventListener('change', function (e) { load(e.target.files[0]); });
+  el.replace.addEventListener('click', function () { el.file.click(); });
+  el.remove.addEventListener('click', clear);
 
-            output.textContent = ascii;
-        }
+  ['dragenter', 'dragover'].forEach(function (t) {
+    el.drop.addEventListener(t, function (e) { e.preventDefault(); el.drop.classList.add('over'); });
+  });
+  ['dragleave', 'drop'].forEach(function (t) {
+    el.drop.addEventListener(t, function (e) { e.preventDefault(); el.drop.classList.remove('over'); });
+  });
+  el.drop.addEventListener('drop', function (e) {
+    if (e.dataTransfer && e.dataTransfer.files.length) load(e.dataTransfer.files[0]);
+  });
 
-        function copyToClipboard() {
-            const text = output.textContent;
-            navigator.clipboard.writeText(text).then(() => {
-                const btn = document.querySelector('button.primary');
-                const originalText = btn.textContent;
-                btn.textContent = "Copied!";
-                setTimeout(() => btn.textContent = originalText, 1500);
-            });
-        }
+  el.ramp.addEventListener('change', function () {
+    if (el.ramp.value !== 'custom') { el.rampText.value = el.ramp.value; render(); }
+    else el.rampText.focus();
+  });
+  el.rampText.addEventListener('input', function () {
+    /* Keep the select honest: typing something that matches a preset should show that preset. */
+    var opts = el.ramp.options, match = 'custom';
+    for (var i = 0; i < opts.length; i++) if (opts[i].value === el.rampText.value) match = opts[i].value;
+    el.ramp.value = match;
+    render();
+  });
 
-        function downloadPNG() {
-            if (!output.textContent || output.textContent.startsWith("Upload")) return;
+  [el.cols, el.bright, el.contrast, el.sat].forEach(function (r) {
+    paintRange(r);
+    r.addEventListener('input', function () { paintRange(r); render(); });
+  });
 
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+  el.resetAdj.addEventListener('click', function () {
+    el.bright.value = el.contrast.value = el.sat.value = 100;
+    [el.bright, el.contrast, el.sat].forEach(paintRange);
+    render();
+  });
 
-            const lines = output.textContent.split('\n');
-            if (lines[lines.length - 1] === "") lines.pop();
+  el.color.addEventListener('input', function () {
+    el.hex.textContent = el.color.value.toUpperCase();
+    render();
+  });
 
-            const fontSize = 24;
-            const font = `500 ${fontSize}px 'Source Code Pro', monospace`;
-            ctx.font = font;
+  /* ── the one place the app overrides a choice you made, and why ────────────────────────────────
+     Picking a light board while the ink is near-white (or a dark board while the ink is near-black)
+     produces a blank export. The polarity rule above happily inverts the ramp for it and the result
+     is still nothing you can see. So on a background change only — never while you are dragging the
+     colour picker — an ink that has almost no contrast against the new board is moved to the far end
+     of it. 0.2 is a deliberately low bar: it rescues the unusable and leaves every deliberate
+     low-contrast choice alone. */
+  function ensureContrast() {
+    var fill = BG_FILL[bg];
+    if (fill === null) return;
+    if (Math.abs(lum(el.color.value) - lum(fill)) >= 0.2) return;
+    el.color.value = lum(fill) > 0.5 ? '#08090A' : '#F5F6F7';
+    el.hex.textContent = el.color.value.toUpperCase();
+  }
 
-            // Measure
-            const lineHeight = fontSize;
-            const charWidth = ctx.measureText('M').width;
+  wireSeg(el.bgSeg, 'data-bg', function (v) {
+    bg = v;
+    el.stage.setAttribute('data-bg', v);
+    ensureContrast();
+    render();
+  });
+  wireSeg(el.wSeg, 'data-w', function (v) { weight = parseInt(v, 10); render(); });
 
-            const margin = 40;
-            canvas.width = (lines[0].length * charWidth) + (margin * 2);
-            canvas.height = (lines.length * lineHeight) + (margin * 2);
+  el.copy.addEventListener('click', function () {
+    if (!text) return;
+    var done = function () { flash(el.copy, 'Copied'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { flash(el.copy, 'Copy failed'); });
+    } else {
+      /* file:// in some browsers has no async clipboard. The old textarea trick still works there. */
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (err) { flash(el.copy, 'Copy failed'); }
+      document.body.removeChild(ta);
+    }
+  });
+  el.png.addEventListener('click', exportPNG);
 
-            // Draw
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+  el.zoomIn.addEventListener('click', function () { setZoom(zoom + (zoom < 1 ? 0.1 : 0.25)); });
+  el.zoomOut.addEventListener('click', function () { setZoom(zoom - (zoom <= 1 ? 0.1 : 0.25)); });
+  el.zoomFit.addEventListener('click', function () { setZoom(1); render(); });
 
-            ctx.fillStyle = colorPicker.value;
-            ctx.font = font;
-            ctx.textBaseline = 'top';
+  /* ── re-fitting ─────────────────────────────────────────────────────────────────────────────────
+     The character size is derived from the stage's box, so any change to that box leaves a stale fit
+     on screen — art that looks mysteriously too small or clipped. A window `resize` listener is not
+     enough: the stage is a grid track and its width changes whenever the rail's scrollbar appears or
+     the layout reflows, neither of which fires `resize`. So the box itself is observed, and the
+     window listener stays only as the fallback where ResizeObserver is missing. */
+  var t = null;
+  function refit() {
+    clearTimeout(t);
+    t = setTimeout(function () { if (image) render(); }, 100);
+  }
+  /* BOTH signals, not one. Measured: an unretained `new ResizeObserver(refit).observe(...)` left a
+     stale 6.37px fit on screen where a control-driven render gave the correct 7.91px, so the observer
+     alone cannot be trusted here — and an observer whose only reference is its own observation is a
+     latent collection hazard in any case. So it is held in `ro`, and `resize` stays wired too. They
+     share one debounce, so the overlap costs a single extra timer reset and never a double render. */
+  var ro = null;
+  if (typeof ResizeObserver === 'function') {
+    ro = new ResizeObserver(refit);
+    ro.observe(el.stageInner);
+  }
+  window.addEventListener('resize', refit);
 
-            lines.forEach((line, i) => {
-                ctx.fillText(line, margin, margin + (i * lineHeight));
-            });
-
-            // Download
-            const link = document.createElement('a');
-            link.download = 'ascii-asset.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-
-        // --- View Controls ---
-        function handleZoom(delta) {
-            currentZoom = Math.max(0.1, Math.min(5, currentZoom + delta));
-            asciiWrapper.style.transform = `scale(${currentZoom})`;
-        }
-
-        function resetZoom() {
-            currentZoom = 1;
-            asciiWrapper.style.transform = `scale(1)`;
-        }
-
-        // --- Visual Adjustments ---
-        function toggleBg() {
-            isDarkBg = !isDarkBg;
-            const btn = document.getElementById('bgToggleBtn');
-            btn.classList.toggle('active');
-
-            if (isDarkBg) {
-                document.getElementById('outputContainer').style.background = "#111111";
-                document.getElementById('outputContainer').style.color = "#FFFFFF";
-                // If the color is set to exactly #000000, invert to white just for preview visibility
-                if (colorPicker.value === "#000000") {
-                    output.style.color = "#FAFAFA";
-                }
-            } else {
-                document.getElementById('outputContainer').style.background = "var(--surface)";
-                document.getElementById('outputContainer').style.color = "var(--text)";
-                generateASCII(); // reset color
-            }
-        }
-
-        function toggleWeight() {
-            isBold = !isBold;
-            const btn = document.getElementById('weightToggleBtn');
-            btn.classList.toggle('active');
-            generateASCII();
-        }
-
-    </script>
+  el.hex.textContent = el.color.value.toUpperCase();
+})();
+</script>
 </body>
-
 </html>
