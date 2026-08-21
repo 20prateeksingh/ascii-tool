@@ -1,315 +1,302 @@
-@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@500&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+/* ══════════════════════════════════════════════════════════════════════════════════════════════════
+   ASCII Asset Generator — stylesheet.
 
-:root {
-    --primary: #2E5CB8;
-    --bg: #FAFAFA;
-    --surface: #FFFFFF;
-    --border: #E0E0E0;
-    --text: #111111;
+   ┌─ THE DESIGN LANGUAGE IS BORROWED, ON PURPOSE. Read before editing. ───────────────────────────┐
+   │ BLOCK ONE below is lifted from the Design Context Kit's page                                   │
+   │   (www.prateeksingh.in/tools/design-context-kit/), which took it from that product's own       │
+   │   dashboard tokens. Same hexes, same names. Keep it a straight diff so a future re-copy stays  │
+   │   cheap: a token only this app wants goes in BLOCK TWO, never in here.                         │
+   │ THIS FILE IS THE SAME BYTES IN TWO PLACES — the repo                                           │
+   │   (github.com/20prateeksingh/ascii-tool, served at 20prateeksingh.github.io/ascii-tool) and    │
+   │   Portfolio-2025 at public/tools/ascii-generator/. Only the two index.html <head>s differ:     │
+   │   the hosted copy carries canonical/OG tags and first-party analytics, the repo copy does not. │
+   │   The CSS is identical. Edit both or neither.                                                  │
+   └───────────────────────────────────────────────────────────────────────────────────────────────┘
+
+   NO FONTS ARE FETCHED. The previous version pulled Inter and Source Code Pro from
+   fonts.googleapis.com — two blocking third-party round-trips to land somewhere the system stack
+   already was. --sans resolves to SF Pro / Segoe UI / Roboto, --mono to SF Mono / Consolas, and the
+   app now renders identically offline and from file://.
+
+   MONOSPACE IS NOT DECORATION HERE. The output is a grid of characters whose shape only survives if
+   every glyph is one width, so --mono on #ascii-output is load-bearing, not a style choice.
+   ═══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+/* ══ BLOCK ONE: THE BORROWED TOKENS. Verbatim from the reference. Do not edit to taste. ══════════ */
+:root { color-scheme:dark;
+        --bg:#08090A; --bg-deep:#050506; --panel:#131316; --panel-2:#1C1C1F; --card:var(--panel);
+        --line:#26262B; --txt:#F5F6F7; --dim:#8A8F98;
+        --accent:#4F46E5; --accent-strong:#918BEE; --accent-text:#FFFFFF;
+        --ok:#33B074; --bad:#E85D5D;
+        --line-2:color-mix(in srgb, var(--txt) 22%, var(--bg));
+        --elev:0 12px 34px rgba(0,0,0,.55);
+        --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+        --sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+        --pad:clamp(16px,4vw,44px); }
+
+/* ══ BLOCK TWO: THIS APP'S OWN SCALE ══════════════════════════════════════════════════════════════
+   DELIBERATELY OUTSIDE :root, the same discipline the reference keeps: nothing below defines or
+   shadows a COLOUR, so block one stays a straight diff.
+
+   THE SIZES ARE SMALLER THAN THE REFERENCE'S AND THAT IS THE POINT. That page is read once — 17px
+   body, 22px lede, 44px h2. This is a tool, operated for twenty minutes, where a control rail set at
+   landing-page sizes pushes the artboard off screen. So the REGISTERS and RATIOS carry over and the
+   absolute sizes drop one step: --fs-body 15.5 (which is the reference's own --fs-sm), --fs-sm 14,
+   --fs-xs 12.5.
+
+   THE MONO EYEBROW IS COPIED EXACTLY — 11.5px, .1em tracking, uppercase, --dim. It is the most
+   recognisable mark of the reference's language and the thing that makes a group of controls read as
+   a section rather than a pile.
+
+   --prose IS DERIVED, NOT INVENTED: the reference's own third text step, 62% --txt mixed into --dim.
+   It carries a control's label. --dim stays for chrome, readouts and fine print — three live steps
+   instead of the two the old stylesheet had (#666 and #888 against #111). */
+html { --fs-body:15.5px; --fs-sm:14px; --fs-xs:12.5px;
+       --r-lg:14px; --r-md:10px; --r-sm:8px;
+       --rail-w:312px;
+       --prose:color-mix(in srgb, var(--txt) 62%, var(--dim)); }
+
+* { box-sizing:border-box; margin:0; }
+
+/* THE `hidden` ATTRIBUTE HAS TO WIN. Four elements here are toggled with `.hidden = true/false` —
+   the drop target, the thumbnail, the empty state and the stage toolbar — and three of them carry an
+   author `display:flex`, which beats the UA stylesheet's `[hidden]{display:none}` on specificity.
+   Without this line the toolbar sits over an empty stage and the drop target never goes away. */
+[hidden] { display:none !important; }
+
+body { background:var(--bg); color:var(--txt); font:var(--fs-body)/1.5 var(--sans);
+       -webkit-font-smoothing:antialiased; min-height:100vh;
+       display:flex; flex-direction:column; }
+
+a { color:var(--accent-strong); }
+a:hover { text-decoration:underline; }
+img { max-width:100%; height:auto; display:block; }
+:focus-visible { outline:2px solid var(--accent-strong); outline-offset:2px; }
+::selection { background:var(--accent); color:var(--accent-text); }
+
+.wrap { max-width:1280px; margin:0 auto; padding:0 var(--pad); width:100%; }
+
+/* ══ THE HEADER BAND ══ the same relationship the reference's has: panel over bg, one hairline. ══ */
+header.band { background:var(--panel); border-bottom:1px solid var(--line);
+              position:sticky; top:0; z-index:20; }
+header.band .wrap { display:flex; align-items:center; gap:14px; min-height:56px; }
+.mark { font-size:15px; font-weight:700; letter-spacing:-.01em; text-decoration:none; color:var(--txt); }
+.mark:hover { text-decoration:none; }
+.mark span { font-weight:400; color:var(--dim); }
+header.band nav { margin-left:auto; display:flex; align-items:center; gap:6px; }
+header.band nav a { color:var(--dim); font-size:var(--fs-xs); padding:6px 10px; border-radius:var(--r-sm);
+                    text-decoration:none; }
+header.band nav a:hover { color:var(--txt); background:var(--panel-2); text-decoration:none; }
+header.band nav a.ghcta { color:var(--txt); border:1px solid var(--line-2); }
+@media (max-width:680px){ header.band nav a.hidesm { display:none; } }
+
+/* ══ THE SHELL ══ rail beside artboard, and the artboard gets the room. ═════════════════════════ */
+main.shell { flex:1; padding:22px 0 34px; }
+main.shell .wrap { display:grid; grid-template-columns:var(--rail-w) minmax(0,1fr); gap:20px;
+                   align-items:start; }
+
+/* ══ THE RAIL ══ one .panel in the reference's terms: card ground, one hairline, --r-lg. ════════ */
+.rail { background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+        padding:18px 16px; display:flex; flex-direction:column; gap:20px;
+        position:sticky; top:78px; max-height:calc(100vh - 100px); overflow-y:auto;
+        scrollbar-width:thin; scrollbar-color:var(--line-2) transparent; }
+.rail::-webkit-scrollbar { width:9px; }
+.rail::-webkit-scrollbar-thumb { background:var(--line-2); border-radius:99px; }
+.rail::-webkit-scrollbar-track { background:transparent; }
+
+/* the eyebrow, copied exactly. It is what makes a group of controls read as a section. */
+.eyebrow { font:400 11.5px/1 var(--mono); letter-spacing:.1em; text-transform:uppercase;
+           color:var(--dim); }
+
+.group { display:flex; flex-direction:column; gap:9px; }
+.group-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+
+/* a control's label sits on the small step; its live value is mono, because it is a readout */
+label, .lbl { font-size:var(--fs-sm); font-weight:500; color:var(--prose); display:block; }
+.val { font:400 12px/1 var(--mono); color:var(--dim); letter-spacing:.01em;
+       font-variant-numeric:tabular-nums; }
+.hint { font-size:var(--fs-xs); line-height:1.5; color:var(--dim); }
+
+/* ══ THE BOX ══ a nested group. --panel-2 inside --panel, the reference's own two-ground move. ══ */
+.box { background:var(--panel-2); border:1px solid var(--line); border-radius:var(--r-md);
+       padding:14px 13px; display:flex; flex-direction:column; gap:14px; }
+
+/* ══ CONTROLS ═════════════════════════════════════════════════════════════════════════════════════
+   Every text-ish input is INSET — --bg-deep inside a --panel card, the treatment the reference gives
+   its copyable command block. A field you type into is a well, not a raised chip. */
+select, input[type="text"] {
+  width:100%; padding:9px 11px; background:var(--bg-deep); color:var(--txt);
+  border:1px solid var(--line); border-radius:var(--r-sm);
+  font:400 var(--fs-sm)/1.4 var(--sans); appearance:none; }
+input[type="text"] { font-family:var(--mono); font-size:13px; letter-spacing:.02em; }
+select { cursor:pointer; padding-right:32px;
+         background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%238A8F98' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+         background-repeat:no-repeat; background-position:right 10px center; background-size:12px; }
+select:hover, input[type="text"]:hover { border-color:var(--line-2); }
+select option { background:var(--panel); color:var(--txt); }
+
+/* the colour well. The swatch IS the control, so the chrome round it is one hairline and nothing. */
+.swatch { display:flex; align-items:center; gap:10px;
+          background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--r-sm);
+          padding:7px 11px 7px 8px; }
+.swatch:hover { border-color:var(--line-2); }
+input[type="color"] { width:30px; height:30px; padding:0; border:1px solid var(--line-2);
+                      border-radius:6px; background:none; cursor:pointer; flex:none; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding:0; }
+input[type="color"]::-webkit-color-swatch { border:none; border-radius:5px; }
+input[type="color"]::-moz-color-swatch { border:none; border-radius:5px; }
+.swatch .hex { font:400 12.5px/1 var(--mono); color:var(--txt); letter-spacing:.04em;
+               text-transform:uppercase; }
+
+/* ══ THE RANGE ══ track is the inset well again; the fill is where accent earns its keep. ══════════
+   --fill is written by JS on every input event, so the filled portion is real rather than implied. */
+input[type="range"] { -webkit-appearance:none; appearance:none; width:100%; height:20px;
+                      background:transparent; cursor:pointer; display:block; }
+input[type="range"]::-webkit-slider-runnable-track {
+  height:6px; border-radius:99px;
+  background:linear-gradient(to right, var(--accent-strong) var(--fill,50%), var(--panel-2) var(--fill,50%));
+  border:1px solid var(--line); }
+input[type="range"]::-moz-range-track { height:6px; border-radius:99px; background:var(--panel-2);
+                                        border:1px solid var(--line); }
+input[type="range"]::-moz-range-progress { height:6px; border-radius:99px; background:var(--accent-strong); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance:none; appearance:none; width:16px; height:16px; border-radius:50%;
+  background:var(--txt); border:1px solid var(--bg); margin-top:-6px;
+  box-shadow:0 1px 4px rgba(0,0,0,.6); }
+input[type="range"]::-moz-range-thumb { width:16px; height:16px; border-radius:50%; border:1px solid var(--bg);
+                                        background:var(--txt); box-shadow:0 1px 4px rgba(0,0,0,.6); }
+
+/* ══ THE DROP TARGET ══ the one dashed edge in the app, because it is the one place a file goes. ══ */
+.drop { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+        min-height:96px; padding:18px 14px; text-align:center; cursor:pointer;
+        background:var(--bg-deep); border:1px dashed var(--line-2); border-radius:var(--r-md); }
+.drop:hover, .drop.over { background:var(--panel-2); border-color:var(--accent-strong); }
+.drop strong { font-size:var(--fs-sm); font-weight:600; color:var(--txt); }
+.drop .hint { max-width:30ch; }
+input[type="file"] { position:absolute; width:1px; height:1px; padding:0; overflow:hidden;
+                     clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+.thumb { background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--r-md);
+         padding:8px; }
+.thumb img { max-height:132px; margin:0 auto; border-radius:6px; object-fit:contain; }
+.thumb-meta { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; }
+.thumb-meta .val { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.thumb-btns { display:flex; gap:6px; flex:none; }
+
+/* ══ BUTTONS ══ the reference's two, plus a mini for the inline ones. ═══════════════════════════ */
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:8px;
+       border-radius:var(--r-md); padding:11px 16px; width:100%;
+       font:600 var(--fs-sm)/1 var(--sans); text-decoration:none; cursor:pointer;
+       border:1px solid transparent; }
+.btn:hover { text-decoration:none; }
+.btn-primary { background:var(--txt); color:var(--bg); }
+.btn-primary:hover { background:#fff; }
+.btn-ghost { background:var(--panel); color:var(--txt); border-color:var(--line-2); }
+.btn-ghost:hover { background:var(--panel-2); }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+.btn-primary:disabled:hover { background:var(--txt); }
+.btn-ghost:disabled:hover { background:var(--panel); }
+
+.btn-mini { font:500 11.5px/1 var(--sans); padding:5px 9px; width:auto; border-radius:6px;
+            background:transparent; color:var(--dim); border:1px solid var(--line-2); cursor:pointer; }
+.btn-mini:hover { color:var(--txt); background:var(--panel-2); }
+
+.actions { display:flex; flex-direction:column; gap:9px; }
+
+/* ══ THE SEGMENTED CONTROL ══════════════════════════════════════════════════════════════════════════
+   For the two properties with three-or-fewer named states — the artboard ground and the glyph weight.
+   Both are EXPORTED properties, which is why they live in the rail beside Colour rather than in the
+   stage toolbar: the toolbar holds view state only (zoom), and the rail holds everything that ends up
+   in the file you download. The old tool put "toggle background" next to zoom and then ignored it at
+   export time, which is exactly the confusion this split removes. */
+.seg { display:flex; background:var(--bg-deep); border:1px solid var(--line);
+       border-radius:var(--r-sm); padding:3px; gap:3px; }
+.seg button { flex:1; font:500 12px/1 var(--sans); padding:7px 6px; border-radius:6px;
+              border:1px solid transparent; background:transparent; color:var(--dim); cursor:pointer;
+              transition:background-color 140ms ease-out, color 140ms ease-out; }
+.seg button:hover { color:var(--txt); }
+.seg button[aria-pressed="true"] { background:var(--panel-2); color:var(--txt); border-color:var(--line-2); }
+
+/* ══ THE STAGE ══════════════════════════════════════════════════════════════════════════════════════
+   The output is the product, so it gets the deepest ground on the page. The art sits on an ARTBOARD
+   whose colour the toolbar sets — AND THAT SAME COLOUR IS WHAT THE PNG EXPORT FILLS, so the download
+   matches the screen. The old version toggled the preview only and always exported onto white, which
+   meant a dark preview downloaded as near-invisible art. */
+.stage { background:var(--bg-deep); border:1px solid var(--line); border-radius:var(--r-lg);
+         position:relative; min-height:min(74vh,720px); display:flex; overflow:hidden; }
+.stage-inner { flex:1; overflow:auto; display:flex; align-items:center; justify-content:center;
+               padding:28px; scrollbar-width:thin; scrollbar-color:var(--line-2) transparent; }
+.stage-inner::-webkit-scrollbar { width:10px; height:10px; }
+.stage-inner::-webkit-scrollbar-thumb { background:var(--line-2); border-radius:99px; }
+.stage-inner::-webkit-scrollbar-track { background:transparent; }
+
+#art { transition:transform 160ms ease-out; transform-origin:center center; }
+/* The artboard's FILL is honest — it is the colour the PNG gets, so it cannot be nudged for
+   legibility. Its EDGE is a preview affordance and is not exported: a box-shadow ring, because the
+   "Dark" board (#08090A) is a hair off the stage's own --bg-deep and without a ring you cannot see
+   where the artwork ends. */
+.artboard { padding:24px; border-radius:var(--r-md); box-shadow:0 0 0 1px var(--line); }
+#ascii-output { font-family:var(--mono); white-space:pre; margin:0; font-size:10px; line-height:10px;
+                letter-spacing:0; }
+
+/* the three artboard grounds. "alpha" is a checkerboard, and it exports with real transparency. */
+.stage[data-bg="dark"]  .artboard { background:#08090A; }
+.stage[data-bg="light"] .artboard { background:#FFFFFF; }
+.stage[data-bg="alpha"] .artboard {
+  background-color:#101013;
+  background-image:linear-gradient(45deg,#1A1A1E 25%,transparent 25%,transparent 75%,#1A1A1E 75%),
+                   linear-gradient(45deg,#1A1A1E 25%,transparent 25%,transparent 75%,#1A1A1E 75%);
+  background-size:18px 18px; background-position:0 0,9px 9px; }
+
+/* ══ THE STAGE TOOLBAR ══ floats over the deep ground, so it takes --panel and the page's elevation */
+.stage-bar { position:absolute; top:12px; right:12px; z-index:10; display:flex; gap:4px;
+             align-items:center; padding:5px; background:var(--panel); border:1px solid var(--line);
+             border-radius:var(--r-md); box-shadow:var(--elev); }
+.tgroup { display:flex; gap:2px; align-items:center; }
+.tgroup + .tgroup { margin-left:4px; padding-left:6px; border-left:1px solid var(--line); }
+.iconbtn { width:30px; height:30px; padding:0; display:inline-flex; align-items:center;
+           justify-content:center; border-radius:6px; cursor:pointer;
+           background:transparent; border:1px solid transparent; color:var(--dim); }
+.iconbtn:hover { background:var(--panel-2); color:var(--txt); }
+.iconbtn[aria-pressed="true"] { background:var(--accent); border-color:var(--accent);
+                                color:var(--accent-text); }
+.iconbtn svg { width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.7;
+               stroke-linecap:round; stroke-linejoin:round; }
+.iconbtn .bold { font:700 14px/1 var(--sans); }
+.zoomval { font:400 11.5px/1 var(--mono); color:var(--dim); min-width:40px; text-align:center;
+           font-variant-numeric:tabular-nums; }
+
+/* ══ THE EMPTY STATE ══ says what to do, in the eyebrow's own register. ════════════════════════════ */
+.empty { display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center;
+         color:var(--dim); padding:40px 20px; }
+/* The glyph line IS the default ramp, shown at a size where it reads as a gradient of density
+   rather than as a row of unrelated symbols. An earlier pass had it at 46px with .14em tracking,
+   which pulled the characters so far apart that the ramp stopped being legible as one thing. */
+.empty .glyph { font:400 clamp(19px,2.2vw,26px)/1.15 var(--mono); color:var(--line-2);
+                letter-spacing:.06em; user-select:none; white-space:pre; }
+.empty p { font-size:var(--fs-sm); max-width:36ch; color:var(--prose); }
+
+footer { border-top:1px solid var(--line); padding:20px 0 30px; color:var(--dim);
+         font-size:var(--fs-xs); }
+footer .wrap { display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; }
+footer .lic { font:400 11.5px/1 var(--mono); color:var(--txt); background:var(--panel);
+              border:1px solid var(--line); border-radius:99px; padding:5px 10px; }
+footer .sep { margin-left:auto; }
+
+.btn, .btn-mini, .iconbtn, .drop, header.band nav a { transition:background-color 140ms ease-out,
+                                                                 border-color 140ms ease-out,
+                                                                 color 140ms ease-out; }
+@media (prefers-reduced-motion:reduce){ *, *::before, *::after { transition:none !important; } }
+
+/* ══ NARROW ══ the rail stops being a rail, and the artboard comes first because it is the product ══ */
+@media (max-width:900px){
+  main.shell .wrap { grid-template-columns:minmax(0,1fr); }
+  .rail { position:static; max-height:none; order:2; }
+  .stage { order:1; min-height:min(56vh,460px); }
 }
-
-body {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    margin: 0;
-    padding: 2rem;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    align-items: center;
-}
-
-.container {
-    width: 100%;
-    max-width: 1200px;
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 2rem;
-}
-
-.controls {
-    background: var(--surface);
-    padding: 1.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--border);
-    height: fit-content;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    position: sticky;
-    top: 2rem;
-    max-height: calc(100vh - 4rem);
-    overflow-y: auto;
-}
-
-h1 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    color: var(--primary);
-}
-
-.group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.sub-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    padding: 1rem;
-    background: #F8F9FA;
-    border-radius: 8px;
-    border: 1px solid #EEE;
-}
-
-.sub-group-title {
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: #888;
-    letter-spacing: 0.05em;
-}
-
-label {
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: #666;
-    display: flex;
-    justify-content: space-between;
-}
-
-input[type="text"],
-input[type="number"],
-input[type="color"] {
-    padding: 0.6rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-family: 'Source Code Pro', monospace;
-    font-size: 0.9rem;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-input[type="color"] {
-    padding: 0.2rem;
-    height: 40px;
-    cursor: pointer;
-}
-
-input[type="range"] {
-    width: 100%;
-}
-
-select {
-    padding: 0.2rem 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    font-family: inherit;
-    font-size: 0.8rem;
-    background: var(--surface);
-    color: var(--text);
-    cursor: pointer;
-    outline: none;
-}
-
-.file-upload {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-input[type="file"] {
-    display: none;
-}
-
-.file-btn {
-    background: var(--surface);
-    border: 1px dashed var(--primary);
-    color: var(--primary);
-    padding: 1rem;
-    border-radius: 6px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 0.9rem;
-}
-
-.file-btn:hover {
-    background: #F0F5FF;
-}
-
-.output-area {
-    background: var(--surface);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    /* padding: 2rem; */
-    overflow: auto;
-    min-height: 500px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-}
-
-#ascii-output {
-    font-family: 'Source Code Pro', monospace;
-    white-space: pre;
-    font-size: 10px;
-    line-height: 10px;
-    color: #000;
-    margin: 0;
-}
-
-.actions {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-}
-
-button {
-    border: none;
-    padding: 0.8rem 1rem;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    width: 100%;
-    font-size: 0.9rem;
-}
-
-button.primary {
-    background: var(--primary);
-    color: white;
-}
-
-button.secondary {
-    background: var(--surface);
-    color: var(--text);
-    border: 1px solid var(--border);
-}
-
-button:hover {
-    opacity: 0.9;
-}
-
-.val-display {
-    font-family: monospace;
-    color: #888;
-}
-
-/* Toolbar Styles */
-.output-toolbar {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    display: flex;
-    gap: 0.5rem;
-    background: var(--surface);
-    padding: 0.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid var(--border);
-    z-index: 10;
-}
-
-.toolbar-group {
-    display: flex;
-    gap: 0.25rem;
-    border-right: 1px solid var(--border);
-    padding-right: 0.5rem;
-}
-
-.toolbar-group:last-child {
-    border-right: none;
-    padding-right: 0;
-}
-
-.icon-btn {
-    background: transparent;
-    border: 1px solid transparent;
-    color: var(--text);
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.icon-btn:hover {
-    background: #F0F5FF;
-    color: var(--primary);
-}
-
-.icon-btn.active {
-    background: var(--primary);
-    color: white;
-}
-
-.icon-btn svg {
-    width: 18px;
-    height: 18px;
-    fill: currentColor;
-}
-
-/* Pan & Zoom Styles */
-.output-container-inner {
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.pan-active .output-container-inner {
-    cursor: grab;
-}
-
-.pan-active .output-container-inner:active {
-    cursor: grabbing;
-}
-
-#ascii-wrapper {
-    transition: transform 0.2s ease-out;
-    transform-origin: center center;
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 1rem;
-    }
-
-    .container {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-    }
-
-    .controls {
-        position: static;
-        max-height: none;
-    }
-
-    .output-area {
-        min-height: 300px;
-        padding: 1rem;
-    }
-
-    #ascii-output {
-        font-size: 8px;
-        line-height: 8px;
-    }
+@media (max-width:520px){
+  .stage-inner { padding:14px; }
+  .artboard { padding:14px; }
+  .stage-bar { top:8px; right:8px; }
+  footer .sep { margin-left:0; }
 }
